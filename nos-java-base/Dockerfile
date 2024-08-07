@@ -1,15 +1,9 @@
-# Uncomment this for community builds
-#FROM quay.io/centos/centos:centos7
+# Change base image to use ubi8
+FROM registry.access.redhat.com/ubi8/openjdk-11:1.20
 
-# Change base image to use ubi7
-FROM registry.access.redhat.com/ubi7:7.9
-
-LABEL io.openshift.sti.scripts-url="image:///usr/local/sti" \
-    io.openshift.s2i.scripts-url="image:///usr/local/sti" \
-    Component="nos-sti-base" \
-    Name="nos-java-base" \
+LABEL Name="nos-java-base" \
     Version="8" \
-    Release="1" \
+    Release="2" \
     maintainer="RedHat SPMM Team <nos-devel@redhat.com>"
 
 USER root
@@ -20,17 +14,9 @@ ADD RH-IT-Root-CA.crt /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
 ADD 2022-IT-Root-CA.pem /etc/pki/ca-trust/source/anchors/2022-IT-Root-CA.pem
 RUN update-ca-trust extract
 
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64 /usr/local/bin/dumb-init
-
-RUN yum -y update && \
-    yum -y install wget git tar which curl tree java-1.8.0-openjdk-devel net-tools lsof iotop && \
-    yum clean all && \
+RUN microdnf -y update && \
+    microdnf -y install wget tar which curl && \
+    microdnf clean all && \
     rm -rf /var/cache/yum
 
-ADD start.sh /usr/local/bin/start.sh
-
-RUN chmod +x /usr/local/bin/*
-
-USER 1001
-
-ENTRYPOINT ["/usr/local/bin/dumb-init", "/usr/local/bin/start.sh"]
+ENTRYPOINT ["/bin/sh"]
